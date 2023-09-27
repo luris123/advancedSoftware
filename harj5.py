@@ -42,8 +42,9 @@ def move_ernesti_monkey():
             if result == 100:
                 winsound.Beep(300, 100)
                 time.sleep(0.1)
-                canvas.coords(kernesti_monkey, 20, 120, 80, 180)
+                canvas.coords(ernesti_monkey, 20, 20, 80, 80)
                 print("Shark has eaten the monkey")
+                break
                 
             print("Ernesti monkey has not reached the continent.")
 
@@ -71,6 +72,7 @@ def move_kernesti_monkey():
                 time.sleep(0.1)
                 canvas.coords(kernesti_monkey, 20, 120, 80, 180)
                 print("Shark has eaten the monkey")
+                break
                 
             print("Kernesti monkey has not reached the continent.")
             
