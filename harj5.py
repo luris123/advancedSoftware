@@ -24,10 +24,45 @@ canvas.grid(row=2, column=2, columnspan=3)
 viesti = ["Ernesti", "ja", "Kernesti", "tässä", "terve!", "Olemme", "autiolla", "saarella,", "ja",
           "voisitteko", "tulla", "sieltä", "sivistyksestä", "joku", "hakemaan", "meidät", "pois!", "Kiitos!"]
 
+pohteri = tk.Label(window, text="Pohteri", pady=8,
+                   bg="white", font=("Arial", 10))
+pohteri.place(x=550, y=230)
+pohteri_message = []
+seen_pohteri_messages = set()
+pohteri_laiva_arrived = False
+ernesti_monkey_survived = 0
+
+
+def add_unique_message_to_pohteri(message):
+    global ernesti_monkey_survived
+    ernesti_monkey_survived += 1
+    if message not in seen_pohteri_messages:
+        pohteri_message.append(message)
+        seen_pohteri_messages.add(message)
+
+
+eteteri = tk.Label(window, text="Eteteri", pady=8,
+                   bg="white", font=("Arial", 10))
+eteteri.place(x=550, y=380)
+eteteri_message = []
+seen_eteteri_messages = set()
+eteteri_laiva_arrived = False
+kernesti_monkey_survived = 0
+
+
+def add_unique_message_to_eteteri(message):
+    global kernesti_monkey_survived
+    kernesti_monkey_survived += 1
+    if message not in seen_eteteri_messages:
+        eteteri_message.append(message)
+        seen_eteteri_messages.add(message)
+
 
 def move_ernesti_monkey():
-    ernesti_monkey = canvas.create_oval(30, 30, 80, 80, fill="yellow")
     random_word = random.choice(viesti)
+    ernesti_monkey = canvas.create_oval(
+        30, 30, 80, 80, fill="yellow")
+
     current_position = canvas.coords(ernesti_monkey)
     continent_coords = canvas.winfo_width()
 
@@ -37,9 +72,9 @@ def move_ernesti_monkey():
         canvas.move(ernesti_monkey, 3.5, 0)
         time.sleep(0.1)
         winsound.Beep(500, 100)
-        result = random.randint(0, 100)
+        result = random.randint(0, 150)
 
-        if result == 100:
+        if result == 150:
 
             winsound.Beep(300, 100)
             time.sleep(0.1)
@@ -48,7 +83,9 @@ def move_ernesti_monkey():
             break
 
     if current_position[2] >= continent_coords:
-        print("Ernesti apina sanoo: ", random_word)
+
+        print("Ernesti monkey says:", random_word)
+        add_unique_message_to_pohteri(random_word)
         winsound.Beep(800, 100)
         canvas.delete(ernesti_monkey)
 
@@ -70,8 +107,9 @@ def ten_ernesti_monkeys_thread():
 
 
 def move_kernesti_monkey():
-    kernesti_monkey = canvas.create_oval(30, 130, 80, 180, fill="orange")
     random_word = random.choice(viesti)
+    kernesti_monkey = canvas.create_oval(
+        30, 130, 80, 180, fill="orange")
 
     current_position = canvas.coords(kernesti_monkey)
     continent_coords = canvas.winfo_width()
@@ -82,9 +120,9 @@ def move_kernesti_monkey():
         canvas.move(kernesti_monkey, 3.5, 0)
         time.sleep(0.1)
         winsound.Beep(700, 100)
-        result = random.randint(0, 100)
+        result = random.randint(0, 150)
 
-        if result == 100:
+        if result == 150:
 
             winsound.Beep(400, 100)
             time.sleep(0.1)
@@ -93,7 +131,9 @@ def move_kernesti_monkey():
             break
 
     if current_position[2] >= continent_coords:
-        print("Kernesti apina sanoo: ", random_word)
+
+        print("Kernesti monkey says:", random_word)
+        add_unique_message_to_eteteri(random_word)
         winsound.Beep(1000, 100)
         canvas.delete(kernesti_monkey)
 
@@ -130,8 +170,150 @@ ten_kernesti_monkeys_button = tk.Button(window, text="Move ten kernesti monkeys 
                                         command=ten_kernesti_monkeys_thread)
 ten_kernesti_monkeys_button.grid(row=4, column=3, columnspan=3)
 
-pohteri = canvas.create_oval(370, 10, 400, 40, fill="white")
-pohteri_text = canvas.create_text(385, 25, text="Pohteri", fill="black")
+pohteri_laiva = tk.Label(window, text="Pohteri laiva",
+                         pady=8, bg="white", font=("Arial", 10))
+pohteri_laiva.place(x=500, y=200)
+
+eteteri_laiva = tk.Label(window, text="Eteteri laiva",
+                         pady=8, bg="white", font=("Arial", 10))
+eteteri_laiva.place(x=500, y=410)
+
+
+def pohteri_watch():
+    global pohteri_laiva_arrived
+    global eteteri_laiva_arrived
+    while True:
+        pohteri_message_length = len(pohteri_message)
+
+        if pohteri_message_length > 10:
+            print("Pohteri understood the message")
+
+            for i in range(0, 20):
+                pohteri_laiva.place(
+                    x=pohteri_laiva.winfo_x()-22, y=pohteri_laiva.winfo_y())
+                time.sleep(1)
+
+            pohteri_laiva_arrived = True
+
+            if pohteri_laiva_arrived and eteteri_laiva_arrived == False:
+                print("Ernesti won!")
+                for i in range(0, 20):
+                    pohteri_laiva.place(
+                        x=pohteri_laiva.winfo_x()+22, y=pohteri_laiva.winfo_y())
+                    time.sleep(1)
+
+                break
+
+            elif pohteri_laiva_arrived and eteteri_laiva_arrived:
+                print("")
+                for i in range(0, 20):
+                    pohteri_laiva.place(
+                        x=pohteri_laiva.winfo_x()+22, y=pohteri_laiva.winfo_y())
+                    time.sleep(1)
+
+                break
+
+            elif pohteri_laiva_arrived == False and eteteri_laiva_arrived:
+                print("")
+                for i in range(0, 20):
+                    pohteri_laiva.place(
+                        x=pohteri_laiva.winfo_x()+22, y=pohteri_laiva.winfo_y())
+                    time.sleep(1)
+
+                break
+        else:
+            time.sleep(3)
+
+
+def eteteri_watch():
+    global pohteri_laiva_arrived
+    global eteteri_laiva_arrived
+    while True:
+        eteteri_message_length = len(eteteri_message)
+
+        if eteteri_message_length > 10:
+            print("Eteteri understood the message")
+
+            for i in range(0, 20):
+                eteteri_laiva.place(
+                    x=eteteri_laiva.winfo_x()-22, y=eteteri_laiva.winfo_y())
+                time.sleep(1)
+
+            eteteri_laiva_arrived = True
+
+            if eteteri_laiva_arrived and pohteri_laiva_arrived == False:
+                print("Kernesti won!")
+                for i in range(0, 20):
+                    eteteri_laiva.place(
+                        x=eteteri_laiva.winfo_x()+22, y=eteteri_laiva.winfo_y())
+                    time.sleep(1)
+
+                break
+
+            elif eteteri_laiva_arrived and pohteri_laiva_arrived:
+                print("")
+                for i in range(0, 20):
+                    eteteri_laiva.place(
+                        x=eteteri_laiva.winfo_x()+22, y=eteteri_laiva.winfo_y())
+                    time.sleep(1)
+
+                break
+
+            elif eteteri_laiva_arrived == False and pohteri_laiva_arrived:
+                print("")
+                for i in range(0, 20):
+                    eteteri_laiva.place(
+                        x=eteteri_laiva.winfo_x()+22, y=eteteri_laiva.winfo_y())
+                    time.sleep(1)
+
+                break
+        else:
+            time.sleep(3)
+
+
+def amount_of_food():
+    global ernesti_monkey_survived
+    global kernesti_monkey_survived
+
+    north_food = ernesti_monkey_survived * 4
+    south_food = kernesti_monkey_survived * 4
+
+    if north_food > south_food:
+        print(ernesti_monkey_survived,
+              "of Ernesti's monkeys survived, they were enough to feed", north_food, "people")
+        print(kernesti_monkey_survived,
+              "of Kernesti's monkeys survived, they were enough to feed", south_food, "people")
+        print("North had a bigger party!")
+
+    elif north_food < south_food:
+        print(ernesti_monkey_survived,
+              "of Ernesti's monkeys survived, they were enough to feed", north_food, "people")
+        print(kernesti_monkey_survived,
+              "of Kernesti's monkeys survived, they were enough to feed", south_food, "people")
+        print("South had a bigger party!")
+
+    elif north_food == 0 and south_food == 0:
+        print("No monkeys have survived/arrived yet!")
+
+    else:
+        print(ernesti_monkey_survived,
+              "of Ernesti's monkeys survived, they were enough to feed", north_food, "people")
+        print(kernesti_monkey_survived,
+              "of Kernesti's monkeys survived, they were enough to feed", south_food, "people")
+        print("Parties were equally big!")
+
+
+amount_of_food_button = tk.Button(
+    window, text="Check amount of food", command=amount_of_food)
+amount_of_food_button.grid(row=5, column=2, columnspan=3)
+
+
+pohteri_thread = threading.Thread(target=pohteri_watch)
+pohteri_thread.start()
+
+eteteri_thread = threading.Thread(target=eteteri_watch)
+eteteri_thread.start()
+
 
 point_button = []
 
@@ -150,6 +332,6 @@ def i_suppose_i_have_earned_so_much_points(amount_of_points):
         winsound.Beep(440+i*100, 500)
 
 
-i_suppose_i_have_earned_so_much_points(3)
+i_suppose_i_have_earned_so_much_points(5)
 
 window.mainloop()
