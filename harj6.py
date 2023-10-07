@@ -29,19 +29,42 @@ ernesti_oja_fig.tight_layout(pad=0)
 ernesti_oja_canvas = FigureCanvasTkAgg(ernesti_oja_fig, master=ikkuna)
 ernesti_oja_canvas.get_tk_widget().place(x=250, y=150)
 
+# function for updating the ernesti_oja_ax showing numbers
+def update_ernesti_oja_ax():
+    for i in range(len(ernesti_oja)):
+        ernesti_oja_ax.text(0, i, int(ernesti_oja[i]), fontsize=7)
+    ernesti_oja_canvas.draw()
+
+
 for i in range(len(ernesti_oja)):
     ernesti_oja_ax.text(0, i, int(ernesti_oja[i]), fontsize=7)
 
+
 def add_ernesti_monkey():
     ernesti_monkey = canvas.create_oval(175, 530, 195, 550, fill='brown')
-    
-    for i in range (random.randint(0, 100)):
-        canvas.move(ernesti_monkey, 0, -4.2)
+    random_number = random.randint(0, 100)
+    for i in range(random_number):
+        canvas.move(ernesti_monkey, 0, -4.4)
         canvas.update()
         time.sleep(0.01)
     while True:
-        while not ernesti_monkey_stop_digging.is_set():
-            print("digging")
+        if ernesti_monkey_stop_digging.is_set() == False:
+            digging_speed = 1
+            digging_left = 100 - random_number
+            for i in range(digging_left, -1, -1):
+                ernesti_oja[i] -= 1
+                update_ernesti_oja_ax()
+                canvas.move(ernesti_monkey, 0, -4.2)
+                canvas.update()
+                print(digging_speed)
+                time.sleep(digging_speed)
+                digging_speed *= 2
+            print(100 - random_number)
+            time.sleep(3)
+            break
+        else:
+            print("Ernesti monkey not digging")
+            time.sleep(3)
 
 def ernesti_monkey_start_or_stop_digging():
     if ernesti_monkey_stop_digging.is_set():
@@ -51,11 +74,11 @@ def ernesti_monkey_start_or_stop_digging():
 
 def ernesti_monkey_thread():
     threading.Thread(target=add_ernesti_monkey).start()
-    
 ernesti_monkey_stop_digging.set()
-    
+
 
 kernesti_oja = np.ones((100, 1))
+kernesti_monkey_stop_digging = threading.Event()
 
 kernesti_oja_fig, kernesti_oja_ax = plt.subplots(figsize=(0.3, 4.5))
 kernesti_oja_fig.set_facecolor("none")
@@ -66,8 +89,49 @@ kernesti_oja_fig.tight_layout(pad=0)
 kernesti_oja_canvas = FigureCanvasTkAgg(kernesti_oja_fig, master=ikkuna)
 kernesti_oja_canvas.get_tk_widget().place(x=670, y=150)
 
+def update_kernesti_oja_ax():
+    for i in range(len(kernesti_oja)):
+        kernesti_oja_ax.text(0, i, int(kernesti_oja[i]), fontsize=7)
+    kernesti_oja_canvas.draw()
+
 for i in range(len(kernesti_oja)):
     kernesti_oja_ax.text(0, i, int(kernesti_oja[i]), fontsize=7)
+    
+def add_kernesti_monkey():
+    kernesti_monkey = canvas.create_oval(655, 530, 675, 550, fill='brown')
+    random_number = random.randint(0, 100)
+    for i in range(random_number):
+        canvas.move(kernesti_monkey, 0, -4.4)
+        canvas.update()
+        time.sleep(0.01)
+    while True:
+        if ernesti_monkey_stop_digging.is_set() == False:
+            digging_speed = 1
+            digging_left = 100 - random_number
+            for i in range(digging_left, -1, -1):
+                kernesti_oja[i] -= 1
+                update_kernesti_oja_ax()
+                canvas.move(kernesti_monkey, 0, -4.2)
+                canvas.update()
+                print(digging_speed)
+                time.sleep(digging_speed)
+                digging_speed *= 2
+            print(100 - random_number)
+            time.sleep(3)
+            break
+        else:
+            print("Kernesti monkey not digging")
+            time.sleep(3)
+            
+def kernesti_monkey_thread():
+    threading.Thread(target=add_kernesti_monkey).start()
+ernesti_monkey_stop_digging.set()
+
+def kernesti_monkey_start_or_stop_digging():
+    if kernesti_monkey_stop_digging.is_set():
+        kernesti_monkey_stop_digging.clear()
+    else:
+        kernesti_monkey_stop_digging.set()
 
 pool = np.zeros((20, 60))
 pool_fig, pool_ax = plt.subplots(figsize=(4.5, 1.5))
@@ -91,6 +155,13 @@ ernesti_monkey_digging_button = tk.Button(
     ikkuna, text="Start/Stop digging", command=ernesti_monkey_start_or_stop_digging)
 ernesti_monkey_digging_button.place(x=250, y=100)
 
+kernesti_monkey_button = tk.Button(
+    ikkuna, text="Add monkey to Kernesti Oja", command=kernesti_monkey_thread)
+kernesti_monkey_button.place(x=670, y=70)
+kernesti_monkey_digging_button = tk.Button(
+    ikkuna, text="Start/Stop digging", command=kernesti_monkey_start_or_stop_digging)
+kernesti_monkey_digging_button.place(x=670, y=100)
+
 # add five buttons to the top line of the window
 koristetta = tk.Label(ikkuna, text="").grid(row=0, column=0)
 point_button = []
@@ -108,7 +179,7 @@ def i_suppose_i_have_earned_so_much_points(amount_of_points):
         point_button[i].configure(bg='green')
         winsound.Beep(440+i*100, 500)
 # example ...
-# i_suppose_i_have_earned_so_much_points(3)
+# i_suppose_i_have_earned_so_much_points(2)
 
 
 ikkuna.mainloop()
