@@ -39,6 +39,7 @@ def update_ernesti_oja_ax():
 for i in range(len(ernesti_oja)):
     ernesti_oja_ax.text(0, i, int(ernesti_oja[i]), fontsize=7)
 
+exit_flag = threading.Event()
 
 def add_ernesti_monkey():
     ernesti_monkey = canvas.create_oval(175, 530, 195, 550, fill='brown')
@@ -59,8 +60,8 @@ def add_ernesti_monkey():
                 print(digging_speed)
                 time.sleep(digging_speed)
                 digging_speed *= 2
-            print(100 - random_number)
             time.sleep(3)
+            canvas.delete(ernesti_monkey)
             break
         else:
             print("Ernesti monkey not digging")
@@ -101,14 +102,15 @@ def add_kernesti_monkey():
     kernesti_monkey = canvas.create_oval(655, 530, 675, 550, fill='brown')
     random_number = random.randint(0, 100)
     for i in range(random_number):
-        canvas.move(kernesti_monkey, 0, -4.4)
+        canvas.move(kernesti_monkey, 0, -4.2)
         canvas.update()
         time.sleep(0.01)
     while True:
-        if ernesti_monkey_stop_digging.is_set() == False:
+        if kernesti_monkey_stop_digging.is_set() == False:
             digging_speed = 1
             digging_left = 100 - random_number
             for i in range(digging_left, -1, -1):
+
                 kernesti_oja[i] -= 1
                 update_kernesti_oja_ax()
                 canvas.move(kernesti_monkey, 0, -4.2)
@@ -116,8 +118,8 @@ def add_kernesti_monkey():
                 print(digging_speed)
                 time.sleep(digging_speed)
                 digging_speed *= 2
-            print(100 - random_number)
             time.sleep(3)
+            canvas.delete(kernesti_monkey)
             break
         else:
             print("Kernesti monkey not digging")
@@ -125,13 +127,26 @@ def add_kernesti_monkey():
             
 def kernesti_monkey_thread():
     threading.Thread(target=add_kernesti_monkey).start()
-ernesti_monkey_stop_digging.set()
+kernesti_monkey_stop_digging.set()
 
 def kernesti_monkey_start_or_stop_digging():
     if kernesti_monkey_stop_digging.is_set():
         kernesti_monkey_stop_digging.clear()
     else:
         kernesti_monkey_stop_digging.set()
+        
+# function that resets both ojas and delete monkeys and clear threads
+def reset_oja():
+    pass
+
+    
+    
+def reset_oja_thread():
+    threading.Thread(target=reset_oja).start()
+
+reset_oja_button = tk.Button(
+    ikkuna, text="Reset oja", command=reset_oja_thread)
+reset_oja_button.place(x=450, y=100)
 
 pool = np.zeros((20, 60))
 pool_fig, pool_ax = plt.subplots(figsize=(4.5, 1.5))
@@ -179,7 +194,7 @@ def i_suppose_i_have_earned_so_much_points(amount_of_points):
         point_button[i].configure(bg='green')
         winsound.Beep(440+i*100, 500)
 # example ...
-# i_suppose_i_have_earned_so_much_points(2)
+# i_suppose_i_have_earned_so_much_points(3)
 
 
 ikkuna.mainloop()
