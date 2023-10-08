@@ -57,6 +57,7 @@ def add_ernesti_monkey():
                 update_ernesti_oja_ax()
                 canvas.move(ernesti_monkey, 0, -4.2)
                 canvas.update()
+                winsound.Beep(500, 100)
                 print(digging_speed)
                 time.sleep(digging_speed)
                 digging_speed *= 2
@@ -115,6 +116,7 @@ def add_kernesti_monkey():
                 update_kernesti_oja_ax()
                 canvas.move(kernesti_monkey, 0, -4.2)
                 canvas.update()
+                winsound.Beep(700, 100)
                 print(digging_speed)
                 time.sleep(digging_speed)
                 digging_speed *= 2
