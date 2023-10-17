@@ -6,45 +6,260 @@ import time
 import random
 
 
+monkeys_on_island_S1 = 10
+travel_awareness_S1 = 1
+
 class Island:
-    def __init__(self, canvas, x, y, value, monkeys):
+    def __init__(self, canvas, x, y, value, monkeys, travel_awareness):
         self.canvas = canvas
         self.x = x
         self.y = y
         self.value = value
         self.monkeys = monkeys
 
+        self.travel_awareness = travel_awareness
+        self.port_e = None
+        self.port_w = None
+        self.port_n = None
+        self.port_s = None
+
+        self.color = "yellow"
+
         self.button = tk.Button(self.canvas, text=str(
-            self.value) + "\n" + str(self.monkeys), command=self.show_info)
+            self.value) + "\n" + str(self.monkeys), command=self.show_info, bg=(self.color))
         self.canvas.create_window(self.x, self.y, window=self.button)
 
         # Initialize the thread for monkey noises
         self.thread = None
+        self.thread_send_monkey_to_swim = None
         self._stop_thread = False
+        self._stop_thread_send_monkey_to_swim = False
         self.start_monkeys_make_noise()
+        self.start_send_monkey_to_swim()
 
     def show_info(self):
         print("x:", self.x, "y:", self.y, "value:",
-              self.value, "monkeys:", self.monkeys)
+              self.value, "monkeys:", self.monkeys, "travel_awareness:", self.travel_awareness)
+
+    def set_travel_awareness(self, new_value):
+        self.travel_awareness = new_value
+        if new_value == 1:
+            self.start_send_monkey_to_swim()
+            
+    def delete_ports(self):
+        if self.port_e:
+            self.port_e.destroy()
+        if self.port_w:
+            self.port_w.destroy()
+        if self.port_n:
+            self.port_n.destroy()
+        if self.port_s:
+            self.port_s.destroy()
 
     def delete(self):
         if self.thread:
             self.stop_monkeys_make_noise()
+        if self.thread_send_monkey_to_swim:
+            self.stop_send_monkey_to_swim()
+        self.delete_ports()
         self.button.destroy()
         del self
 
     def send_monkey_to_swim(self):
-        self.monkeys -= 1
-        print("")
+        while not self._stop_thread_send_monkey_to_swim:
+            while True:
+                if self.travel_awareness == 1 and self.monkeys > 0:
+                    winsound.Beep(1200, 100)
+                    print("A monkey has been sent from", self.value, "...")
+                    self.monkeys -= 1
+                    self.update_island_text()
+                    print("...Now there are", self.monkeys,
+                          "monkeys on", self.value)
+                    self.choose_random_port()
+                time.sleep(10)
+                if self._stop_thread_send_monkey_to_swim:
+                    return
+
+    def choose_random_port(self):
+        global monkeys_on_island_S1
+        random_port = random.randint(0, 3)
+        break_loop = False
+        # create ports to the island similar to island S1
+        self.port_e = tk.Button(self.canvas, text="===")
+        self.port_e.place(x=self.x+10, y=self.y-10)
+        self.port_w = tk.Button(self.canvas, text="===")
+        self.port_w.place(x=self.x-40, y=self.y-10)
+        self.port_n = tk.Button(self.canvas, text="||")
+        self.port_n.place(x=self.x-10, y=self.y-40)
+        self.port_s = tk.Button(self.canvas, text="||")
+        self.port_s.place(x=self.x-10, y=self.y+20)
+
+        if random_port == 0:
+            monkey = canvas.create_oval(
+                self.x+50, self.y+20, self.x+50+10, self.y+20+10, fill="brown")
+            # move oval to the right until it reaches the edge of the canvas
+            while canvas.coords(monkey)[0] < 590:
+                canvas.move(monkey, 10, 0)
+                time.sleep(0.1)
+                random_number = random.randint(1, 100)
+                if random_number == 1:
+                    canvas.delete(monkey)
+                    print("A monkey was eaten by a shark")
+                    winsound.Beep(100, 100)
+                    break
+                # check if there is an island at the spot
+                overlaps = canvas.find_overlapping(
+                    canvas.coords(monkey)[0], canvas.coords(monkey)[1], canvas.coords(monkey)[2], canvas.coords(monkey)[3])
+                if len(overlaps) > 1:
+                    for island in generated_islands:
+                        if abs(island.x - canvas.coords(monkey)[0]) < 50 and abs(island.y - canvas.coords(monkey)[1]) < 50:
+                            print("A monkey arrived on island", island.value)
+                            island.monkeys += 1
+                            island.travel_awareness = 1
+                            island.update_island_text()
+                            canvas.delete(monkey)
+                            break_loop = True
+                            break
+                overlaps_S1 = canvas.find_overlapping(
+                    200, 200, 200+50, 200+50)
+                if len(overlaps_S1) > 1:
+                    monkeys_on_island_S1 += 1
+                    winsound.Beep(500, 500)
+                if break_loop:
+                    break
+            canvas.delete(monkey)
+
+        elif random_port == 1:
+            monkey = canvas.create_oval(
+                self.x-20, self.y+20, self.x-20+10, self.y+20+10, fill="brown")
+            # move oval to the left until it reaches the edge of the canvas
+            while canvas.coords(monkey)[0] > 10:
+                canvas.move(monkey, -10, 0)
+                time.sleep(0.1)
+                random_number = random.randint(1, 100)
+                if random_number == 1:
+                    canvas.delete(monkey)
+                    print("A monkey was eaten by a shark")
+                    winsound.Beep(100, 100)
+                    break
+                # check if there is an island at the spot
+                overlaps = canvas.find_overlapping(
+                    canvas.coords(monkey)[0], canvas.coords(monkey)[1], canvas.coords(monkey)[2], canvas.coords(monkey)[3])
+                if len(overlaps) > 1:
+                    for island in generated_islands:
+                        if abs(island.x - canvas.coords(monkey)[0]) < 50 and abs(island.y - canvas.coords(monkey)[1]) < 50:
+                            print("A monkey arrived on island", island.value)
+                            island.monkeys += 1
+                            island.travel_awareness = 1
+                            island.update_island_text()
+                            canvas.delete(monkey)
+                            break_loop = True
+                            break
+                overlaps_S1 = canvas.find_overlapping(
+                    200, 200, 200+50, 200+50)
+                if len(overlaps_S1) > 1:
+                    monkeys_on_island_S1 += 1
+                    winsound.Beep(500, 500)
+                if break_loop:
+                    break
+            canvas.delete(monkey)
+
+        elif random_port == 2:
+            monkey = canvas.create_oval(
+                self.x+20, self.y-20, self.x+20+10, self.y-20+10, fill="brown")
+            # move oval up until it reaches the edge of the canvas
+            while canvas.coords(monkey)[1] > 10:
+                canvas.move(monkey, 0, -10)
+                time.sleep(0.1)
+                random_number = random.randint(1, 100)
+                if random_number == 1:
+                    canvas.delete(monkey)
+                    print("A monkey was eaten by a shark")
+                    winsound.Beep(100, 100)
+                    break
+                # check if there is an island at the spot
+                overlaps = canvas.find_overlapping(
+                    canvas.coords(monkey)[0], canvas.coords(monkey)[1], canvas.coords(monkey)[2], canvas.coords(monkey)[3])
+                if len(overlaps) > 1:
+                    for island in generated_islands:
+                        if abs(island.x - canvas.coords(monkey)[0]) < 50 and abs(island.y - canvas.coords(monkey)[1]) < 50:
+                            print("A monkey arrived on island", island.value)
+                            island.monkeys += 1
+                            island.travel_awareness = 1
+                            island.update_island_text()
+                            canvas.delete(monkey)
+                            break_loop = True
+                            break
+                overlaps_S1 = canvas.find_overlapping(
+                    200, 200, 200+50, 200+50)
+                if len(overlaps_S1) > 1:
+                    monkeys_on_island_S1 += 1
+                    winsound.Beep(500, 500)
+                if break_loop:
+                    break
+            canvas.delete(monkey)
+
+        elif random_port == 3:
+            monkey = canvas.create_oval(
+                self.x+20, self.y+60, self.x+20+10, self.y+60+10, fill="brown")
+            # move oval down until it reaches the edge of the canvas
+            while canvas.coords(monkey)[1] < 590:
+                canvas.move(monkey, 0, 10)
+                time.sleep(0.1)
+                random_number = random.randint(1, 100)
+                if random_number == 1:
+                    canvas.delete(monkey)
+                    print("A monkey was eaten by a shark")
+                    winsound.Beep(100, 100)
+                    break
+                # check if there is an island at the spot
+                overlaps = canvas.find_overlapping(
+                    canvas.coords(monkey)[0], canvas.coords(monkey)[1], canvas.coords(monkey)[2], canvas.coords(monkey)[3])
+                if len(overlaps) > 1:
+                    for island in generated_islands:
+                        if abs(island.x - canvas.coords(monkey)[0]) < 50 and abs(island.y - canvas.coords(monkey)[1]) < 50:
+                            print("A monkey arrived on island", island.value)
+                            island.monkeys += 1
+                            island.travel_awareness = 1
+                            island.update_island_text()
+                            canvas.delete(monkey)
+                            break_loop = True
+                            break
+                overlaps_S1 = canvas.find_overlapping(
+                    200, 200, 200+50, 200+50)
+                if len(overlaps_S1) > 1:
+                    monkeys_on_island_S1 += 1
+                    winsound.Beep(500, 500)
+                if break_loop:
+                    break
+            canvas.delete(monkey)
+
+    def start_send_monkey_to_swim(self):
+        if not self.thread_send_monkey_to_swim:
+            self._stop_thread_send_monkey_to_swim = False  # Reset the flag
+            self.thread_send_monkey_to_swim = threading.Thread(
+                target=self.send_monkey_to_swim)
+            self.thread_send_monkey_to_swim.daemon = True
+            self.thread_send_monkey_to_swim.start()
+
+    def stop_send_monkey_to_swim(self):
+        self._stop_thread_send_monkey_to_swim = True
+        if self.thread_send_monkey_to_swim and self.thread_send_monkey_to_swim.is_alive():
+            self.thread_send_monkey_to_swim.join()
+        self.thread_send_monkey_to_swim = None
 
     def update_island_text(self):
         self.button.configure(text=str(self.value) + "\n" + str(self.monkeys))
+        if self.travel_awareness == 1:
+            self.button.configure(bg="green")
 
     def monkeys_make_noise(self):
         sound_value = self.value[1:]
         hertz_multiplier = int(sound_value)
         while not self._stop_thread:
             for i in range(self.monkeys):
+                if self._stop_thread:
+                    return
                 if random.random() <= 0.01:
                     print("A monkey died from laughter on island", self.value)
                     winsound.Beep(1000, 100)
@@ -91,7 +306,7 @@ def generate_island():
             generate_island()
         else:
             button_text = "S"+str(len(generated_islands)+2)
-            island = Island(canvas, x, y, button_text, 10)
+            island = Island(canvas, x, y, button_text, 10, 0)
             generated_islands.append(island)
 
 
@@ -100,10 +315,12 @@ def delete_all_islands():
     global generated_islands
     for island in generated_islands:
         island.stop_monkeys_make_noise()
+        island.stop_send_monkey_to_swim()
 
     # Delete all island objects
     for island in generated_islands:
         island.delete()
+        island.delete_ports()
     generated_islands = []
     print(generated_islands)
 
@@ -131,26 +348,23 @@ canvas.place(x=50, y=50)
 generated_islands = []
 
 
-monkeys_on_island_S1 = 10
-travel_awareness_S1 = 1
-island_S1 = tk.Button(ikkuna, text="S1\n" +
+island_S1 = tk.Button(canvas, text="S1\n" +
                       str(monkeys_on_island_S1), width=7, height=4)
 island_S1.place(x=200, y=200)
 
-port_e = tk.Button(ikkuna, text="===")
+port_e = tk.Button(canvas, text="===")
 port_e.place(x=200+50, y=200+20)
 
-port_w = tk.Button(ikkuna, text="===")
+port_w = tk.Button(canvas, text="===")
 port_w.place(x=200-20, y=200+20)
 
-port_n = tk.Button(ikkuna, text="||")
+port_n = tk.Button(canvas, text="||")
 port_n.place(x=200+20, y=200-20)
 
-port_s = tk.Button(ikkuna, text="||")
+port_s = tk.Button(canvas, text="||")
 port_s.place(x=200+20, y=200+60)
 
 
-# varmuutta saarten ominaisuuksien hallintaan...
 if travel_awareness_S1 == 1:
     island_S1.configure(bg="green")
 else:
@@ -160,22 +374,21 @@ else:
 def send_monkey_from_S1():
     global monkeys_on_island_S1, travel_awareness_S1
     while 1:
-        # missä tilanteessa apinoita tulee lähettää?
-        if random.random() <= 0.01:
-            print("A monkey died from laughter on island S1")
-            winsound.Beep(1000, 100)
-            monkeys_on_island_S1 -= 1
-            island_S1.configure(text="S1\n" + str(monkeys_on_island_S1))
+        time.sleep(10)
         if travel_awareness_S1 == 1 and monkeys_on_island_S1 > 0:
-            # muista laittaa tähän arvonta miltä laiturilta...
-            # lähetetään apina...threading...jne...
+            if random.random() <= 0.01:
+                print("A monkey died from laughter on island S1")
+                winsound.Beep(1000, 100)
+                monkeys_on_island_S1 -= 1
+                island_S1.configure(text="S1\n" + str(monkeys_on_island_S1))
+
             winsound.Beep(1200, 100)
             print("A monkey has been sent from S1...")
             monkeys_on_island_S1 -= 1
             island_S1.configure(text="S1\n" + str(monkeys_on_island_S1))
             print("...Now there are", monkeys_on_island_S1, "monkeys on S1")
             choose_random_port_S1()
-        time.sleep(10)
+
 
 
 def choose_random_port_S1():
@@ -204,12 +417,12 @@ def choose_random_port_S1():
                         print("A monkey arrived on island", island.value)
                         island.monkeys += 1
                         island.update_island_text()
+                        island.travel_awareness = 1
                         canvas.delete(monkey)
                         break_loop = True
                         break
             if break_loop:
                 break
-        time.sleep(5)
         canvas.delete(monkey)
 
     elif random_port == 1:
@@ -235,12 +448,12 @@ def choose_random_port_S1():
                         print("A monkey arrived on island", island.value)
                         island.monkeys += 1
                         island.update_island_text()
+                        island.travel_awareness = 1
                         canvas.delete(monkey)
                         break_loop = True
                         break
             if break_loop:
                 break
-        time.sleep(5)
         canvas.delete(monkey)
 
     elif random_port == 2:
@@ -266,12 +479,12 @@ def choose_random_port_S1():
                         print("A monkey arrived on island", island.value)
                         island.monkeys += 1
                         island.update_island_text()
+                        island.travel_awareness = 1
                         canvas.delete(monkey)
                         break_loop = True
                         break
             if break_loop:
                 break
-        time.sleep(5)
         canvas.delete(monkey)
 
     elif random_port == 3:
@@ -297,22 +510,20 @@ def choose_random_port_S1():
                         print("A monkey arrived on island", island.value)
                         island.monkeys += 1
                         island.update_island_text()
+                        island.travel_awareness = 1
                         canvas.delete(monkey)
                         break_loop = True
                         break
             if break_loop:
                 break
-        time.sleep(5)
         canvas.delete(monkey)
 
 
 def check_if_new_monkeys_on_S1():
     global monkeys_on_island_S1
     while 1:
-        # simuloidaan...
-        if np.random.randint(0, 100) > 50:
-            monkeys_on_island_S1 += 1
-            winsound.Beep(500, 500)
+        # check if moving shape hits the island
+
         time.sleep(1)
         island_S1.configure(text="S1\n" + str(monkeys_on_island_S1))
         print("Amount of monkeys on S1 after checking:", monkeys_on_island_S1)
@@ -352,7 +563,7 @@ def i_suppose_i_have_earned_so_much_points(amount_of_points):
     points_mod = int(amount_of_points/5)
     for i in range(5):
         point_button[i].configure(bg='gray')
-    time.sleep(1)
+    # time.sleep(1)
     point_button[0].configure(bg='green')
     for i in range(points_mod):
         point_button[i+1].configure(bg='green')
@@ -360,6 +571,6 @@ def i_suppose_i_have_earned_so_much_points(amount_of_points):
 # example ...
 
 
-i_suppose_i_have_earned_so_much_points(0)
+i_suppose_i_have_earned_so_much_points(20)
 
 ikkuna.mainloop()
