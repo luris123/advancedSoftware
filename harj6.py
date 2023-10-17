@@ -196,7 +196,7 @@ def i_suppose_i_have_earned_so_much_points(amount_of_points):
         point_button[i].configure(bg='green')
         winsound.Beep(440+i*100, 500)
 # example ...
-# i_suppose_i_have_earned_so_much_points(3)
+i_suppose_i_have_earned_so_much_points(3)
 
 
 ikkuna.mainloop()
