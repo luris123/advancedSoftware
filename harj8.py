@@ -58,11 +58,13 @@ class Island:
             self.port_s.destroy()
 
     def delete(self):
+        self.delete_ports()
         if self.thread:
             self.stop_monkeys_make_noise()
         if self.thread_send_monkey_to_swim:
             self.stop_send_monkey_to_swim()
         self.delete_ports()
+        
         self.button.destroy()
         del self
 
@@ -353,6 +355,7 @@ def delete_all_islands():
     for island in generated_islands:
         island.stop_monkeys_make_noise()
         island.stop_send_monkey_to_swim()
+        island.delete_ports()
 
     # Delete all island objects
     for island in generated_islands:
